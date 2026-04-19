@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hogwarts — Filtro por Casa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gryffindor-main: #740001;
+            --gryffindor-accent: #D3A625;
+            --slytherin-main: #1A472A;
+            --slytherin-accent: #AAAAAA;
+            --ravenclaw-main: #0E1A40;
+            --ravenclaw-accent: #946B2D;
+            --hufflepuff-main: #ECB939;
+            --hufflepuff-accent: #372E29;
+            --active: #D3A625;
+            --bg: #0a0a0f;
+            --card-bg: #12121a;
+            --text: #e8e0d0;
+            --text-muted: #7a7060;
+            --border: rgba(255,255,255,0.07);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Lato', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo estático con patrón sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 20%, rgba(116,0,1,0.06) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(14,26,64,0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 60px 20px 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .crest {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        header h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(1.4rem, 4vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* Filtros */
+        .filters {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 40px 20px 30px;
+        }
+
+        .house-btn {
+            font-family: 'Cinzel', serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-muted);
+            padding: 12px 28px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .house-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .house-btn:hover {
+            color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        /* Gryffindor */
+        .house-btn[data-house="gryffindor"]::before { background: linear-gradient(135deg, rgba(116,0,1,0.5), rgba(211,166,37,0.3)); }
+        .house-btn[data-house="gryffindor"]:hover,
+        .house-btn[data-house="gryffindor"].active {
+            border-color: var(--gryffindor-accent);
+            color: var(--gryffindor-accent);
+            box-shadow: 0 0 20px rgba(211,166,37,0.2), inset 0 0 20px rgba(116,0,1,0.3);
+        }
+
+        /* Slytherin */
+        .house-btn[data-house="slytherin"]::before { background: linear-gradient(135deg, rgba(26,71,42,0.5), rgba(170,170,170,0.2)); }
+        .house-btn[data-house="slytherin"]:hover,
+        .house-btn[data-house="slytherin"].active {
+            border-color: var(--slytherin-accent);
+            color: var(--slytherin-accent);
+            box-shadow: 0 0 20px rgba(170,170,170,0.15), inset 0 0 20px rgba(26,71,42,0.4);
+        }
+
+        /* Ravenclaw */
+        .house-btn[data-house="ravenclaw"]::before { background: linear-gradient(135deg, rgba(14,26,64,0.6), rgba(148,107,45,0.3)); }
+        .house-btn[data-house="ravenclaw"]:hover,
+        .house-btn[data-house="ravenclaw"].active {
+            border-color: var(--ravenclaw-accent);
+            color: var(--ravenclaw-accent);
+            box-shadow: 0 0 20px rgba(148,107,45,0.2), inset 0 0 20px rgba(14,26,64,0.5);
+        }
+
+        /* Hufflepuff */
+        .house-btn[data-house="hufflepuff"]::before { background: linear-gradient(135deg, rgba(236,185,57,0.3), rgba(55,46,41,0.5)); }
+        .house-btn[data-house="hufflepuff"]:hover,
+        .house-btn[data-house="hufflepuff"].active {
+            border-color: var(--hufflepuff-main);
+            color: var(--hufflepuff-main);
+            box-shadow: 0 0 20px rgba(236,185,57,0.2), inset 0 0 20px rgba(55,46,41,0.4);
+        }
+
+        .house-btn.active::before { opacity: 1; }
+
+        /* Emblemas de casas */
+        .house-btn .emblem { font-size: 1.1em; margin-right: 6px; }
+
+        /* Stats bar */
+        .stats-bar {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 0 20px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            min-height: 28px;
+        }
+
+        /* Loading */
+        #loading {
+            display: none;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 80px 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #loading.visible { display: flex; }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255,255,255,0.08);
+            border-top-color: var(--house-accent, #D3A625);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loading p {
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+        }
+
+        /* Error */
+        #error {
+            display: none;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #cc4444;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+        }
+
+        #error.visible { display: block; }
+
+        /* Grid de tarjetas */
+        #cards {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 10px 30px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Tarjeta */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: fadeUp 0.4s ease both;
+            cursor: default;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: var(--house-accent-color, rgba(211,166,37,0.4));
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+            background: #1a1a24;
+        }
+
+        .card-img.no-photo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.06);
+            background: linear-gradient(180deg, #1a1a24, #12121a);
+        }
+
+        .card-body {
+            padding: 14px 16px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .card-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 1px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            font-family: 'Lato', sans-serif;
+        }
+
+        .tag.alive { border-color: rgba(34,120,60,0.4); color: #4a9a6a; }
+        .tag.dead { border-color: rgba(160,50,50,0.4); color: #8a4040; }
+        .tag.student { border-color: rgba(148,107,45,0.4); color: #946B2D; }
+        .tag.staff { border-color: rgba(100,100,180,0.4); color: #7070cc; }
+
+        .card-detail {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .card-detail span { color: rgba(255,255,255,0.35); }
+
+        /* Estado inicial vacío */
+        #empty-state {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        #empty-state .big-icon { font-size: 3.5rem; margin-bottom: 20px; opacity: 0.4; display: block; }
+
+        #empty-state h2 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 1rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        #empty-state p {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.05em;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.15);
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.08em;
+        }
+
+        /* Divisor de casa activa */
+        .house-divider {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 0 20px 30px;
+            display: none;
+        }
+
+        .house-divider.visible { display: block; }
+
+        .house-divider h2 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(1rem, 3vw, 1.6rem);
+            letter-spacing: 0.1em;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .house-divider .line {
+            display: block;
+            width: 60px;
+            height: 1px;
+            background: currentColor;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <span class="crest">⚡</span>
+    <h1>Hogwarts School</h1>
+    <p>Wizarding World Character Registry</p>
+</header>
+
+<div class="filters">
+    <button class="house-btn" data-house="gryffindor">
+        <span class="emblem">🦁</span> Gryffindor
+    </button>
+    <button class="house-btn" data-house="slytherin">
+        <span class="emblem">🐍</span> Slytherin
+    </button>
+    <button class="house-btn" data-house="ravenclaw">
+        <span class="emblem">🦅</span> Ravenclaw
+    </button>
+    <button class="house-btn" data-house="hufflepuff">
+        <span class="emblem">🦡</span> Hufflepuff
+    </button>
+</div>
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<div class="house-divider" id="house-divider">
+    <h2 id="house-title"><span class="line"></span><span id="house-name"></span><span class="line"></span></h2>
+</div>
+
+<div id="empty-state">
+    <span class="big-icon">🏰</span>
+    <h2>Select a House</h2>
+    <p>Choose your house to reveal its members</p>
+</div>
+
+<div id="loading">
+    <div class="spinner" id="spinner"></div>
+    <p id="loading-text">Consulting the Sorting Hat...</p>
+</div>
+
+<div id="error"></div>
+
+<div id="cards"></div>
+
+<footer>HP-API · The Harry Potter API · For educational purposes only</footer>
+
+<script>
+    const BASE_URL = 'https://hp-api.onrender.com';
+
+    const HOUSE_CONFIG = {
+        gryffindor: {
+            color: '#D3A625',
+            title: 'House of Gryffindor',
+            msg: 'Where dwell the brave at heart',
+            css: 'rgba(211,166,37,0.4)'
+        },
+        slytherin: {
+            color: '#AAAAAA',
+            title: 'House of Slytherin',
+            msg: 'Those cunning folk use any means',
+            css: 'rgba(170,170,170,0.3)'
+        },
+        ravenclaw: {
+            color: '#946B2D',
+            title: 'House of Ravenclaw',
+            msg: 'Those of wit and learning',
+            css: 'rgba(148,107,45,0.4)'
+        },
+        hufflepuff: {
+            color: '#ECB939',
+            title: 'House of Hufflepuff',
+            msg: 'The just and the loyal',
+            css: 'rgba(236,185,57,0.35)'
+        }
+    };
+
+    const LOADING_MSGS = [
+        'Consulting the Sorting Hat...',
+        'Searching the castle corridors...',
+        'Checking the Marauder\'s Map...',
+        'Owl post incoming...'
+    ];
+
+    let currentHouse = null;
+
+    document.querySelectorAll('.house-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const house = btn.dataset.house;
+            if (house === currentHouse) return;
+            currentHouse = house;
+
+            document.querySelectorAll('.house-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            fetchHouse(house);
+        });
+    });
+
+    async function fetchHouse(house) {
+        const config = HOUSE_CONFIG[house];
+
+        // Update CSS variable for accent color
+        document.documentElement.style.setProperty('--house-accent', config.color);
+        document.documentElement.style.setProperty('--house-accent-color', config.css);
+
+        // UI: mostrar loading
+        hide('empty-state');
+        hide('cards');
+        hide('error');
+        hide('house-divider');
+        show('loading');
+
+        const loadingText = document.getElementById('loading-text');
+        loadingText.textContent = LOADING_MSGS[Math.floor(Math.random() * LOADING_MSGS.length)];
+
+        document.getElementById('stats-bar').textContent = '';
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/characters/house/${house}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            hide('loading');
+            renderHouseHeader(house, config, data.length);
+            renderCards(data, config.css);
+
+        } catch (err) {
+            hide('loading');
+            showError('The owl could not deliver the message. Check your connection and try again.');
+        }
+    }
+
+    function renderHouseHeader(house, config, count) {
+        const divider = document.getElementById('house-divider');
+        const title = document.getElementById('house-title');
+        const nameEl = document.getElementById('house-name');
+
+        nameEl.textContent = config.title;
+        title.style.color = config.color;
+        divider.classList.add('visible');
+
+        document.getElementById('stats-bar').textContent =
+            `${count} witches & wizards — ${config.msg}`;
+
+        show('house-divider');
+    }
+
+    function renderCards(characters, accentCss) {
+        const container = document.getElementById('cards');
+        container.innerHTML = '';
+
+        if (characters.length === 0) {
+            container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:'Cinzel',serif;font-size:0.8rem;padding:40px">No characters found.</p>`;
+            show('cards');
+            return;
+        }
+
+        characters.forEach((char, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.animationDelay = `${Math.min(i * 40, 600)}ms`;
+
+            const imgHtml = char.image
+                ? `<img class="card-img" src="${char.image}" alt="${char.name}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-img no-photo\\'>⚗️</div>'">`
+                : `<div class="card-img no-photo">⚗️</div>`;
+
+            const tags = [];
+            if (char.hogwartsStudent) tags.push(`<span class="tag student">Student</span>`);
+            if (char.hogwartsStaff) tags.push(`<span class="tag staff">Staff</span>`);
+            if (char.alive === true) tags.push(`<span class="tag alive">Alive</span>`);
+            if (char.alive === false) tags.push(`<span class="tag dead">Deceased</span>`);
+
+            const details = [];
+            if (char.species) details.push(`<span>Species</span> ${capitalize(char.species)}`);
+            if (char.patronus) details.push(`<span>Patronus</span> ${capitalize(char.patronus)}`);
+            if (char.ancestry) details.push(`<span>Ancestry</span> ${capitalize(char.ancestry)}`);
+            if (char.actor) details.push(`<span>Actor</span> ${char.actor}`);
+
+            card.innerHTML = `
+        ${imgHtml}
+        <div class="card-body">
+          <div class="card-name">${char.name}</div>
+          ${tags.length ? `<div class="card-tags">${tags.join('')}</div>` : ''}
+          ${details.length ? `<div class="card-detail">${details.join(' · ')}</div>` : ''}
+        </div>
+      `;
+
+            container.appendChild(card);
+        });
+
+        show('cards');
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('error');
+        el.textContent = '✦  ' + msg + '  ✦';
+        el.classList.add('visible');
+    }
+
+    function show(id) { document.getElementById(id).classList.add('visible'); }
+    function hide(id) {
+        const el = document.getElementById(id);
+        el.classList.remove('visible');
+        if (id === 'loading') el.style.display = '';
+        if (id === 'cards') el.style.display = '';
+    }
+
+    // Override display for loading and cards
+    const style = document.createElement('style');
+    style.textContent = `
+    #loading.visible { display: flex !important; }
+    #cards.visible { display: grid !important; }
+    #house-divider.visible { display: block !important; }
+    #error.visible { display: block !important; }
+    #empty-state.visible { display: block !important; }
+  `;
+    document.head.appendChild(style);
+
+    function capitalize(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+</script>
+</body>
+</html>
